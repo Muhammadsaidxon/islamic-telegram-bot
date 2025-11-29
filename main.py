@@ -1,34 +1,31 @@
 import os
 import asyncio
-import requests
 from datetime import datetime
 import random
 from telegram import Bot
-from telegram.error import TelegramError
-import time
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
 
-class DeployedIslamicBot:
+class IslamicBot:
     def __init__(self):
         self.token = os.getenv('BOT_TOKEN')
         self.admin_id = os.getenv('ADMIN_ID')
         
         if not self.token:
-            raise ValueError("BOT_TOKEN not set")
+            raise ValueError("BOT_TOKEN not found")
         if not self.admin_id:
-            raise ValueError("ADMIN_ID not set")
-        
+            raise ValueError("ADMIN_ID not found")
+            
         self.bot = Bot(token=self.token)
-        print("🤖 Islamic Bot Started Successfully!")
+        print("✅ Islamic Bot Started on Render!")
     
-    def get_daily_data(self):
-        """Get daily Islamic data"""
+    def create_daily_message(self):
+        """Create the daily message"""
         current_date = datetime.now()
         
-        # Prayer times for Tashkent
+        # Prayer times
         prayer_times = {
             "🌅 Bomdod": "05:45",
             "☀️ Quyosh": "07:12", 
@@ -45,29 +42,19 @@ class DeployedIslamicBot:
             "Kuchli odam - g'azab vaqtida o'zini tuta oladigan kishidir. - Payg'ambarimiz (s.a.v.)"
         ]
         
-        return {
-            'date': current_date.strftime("%d-%m-%Y"),
-            'prayer_times': prayer_times,
-            'hadith': random.choice(hadiths)
-        }
-    
-    def format_message(self):
-        """Format the message"""
-        data = self.get_daily_data()
-        
-        prayer_text = ""
-        for prayer, time in data['prayer_times'].items():
-            prayer_text += f"• {prayer}: `{time}`\n"
+        # Build message
+        prayer_text = "\n".join([f"• {prayer}: `{time}`" for prayer, time in prayer_times.items()])
         
         message = f"""🕌 *Kunlik Namoz Vaqtlari*
 
-📅 *Sana:* {data['date']}
+📅 *Sana:* {current_date.strftime('%d-%m-%Y')}
 🏙️ *Shahar:* Toshkent
 
 🕐 *Namoz Vaqtlari:*
 {prayer_text}
+
 📖 *Kunlik Hadis:*
-\"{data['hadith']}\"
+\"{random.choice(hadiths)}\"
 
 🤖 *@DailyIslamInfoBot*
 *🕋 Alloh namozlaringizni qabul qilsin!*"""
@@ -77,7 +64,7 @@ class DeployedIslamicBot:
     async def send_message(self):
         """Send message to Telegram"""
         try:
-            message = self.format_message()
+            message = self.create_daily_message()
             await self.bot.send_message(
                 chat_id=self.admin_id,
                 text=message,
@@ -85,31 +72,26 @@ class DeployedIslamicBot:
             )
             print(f"✅ Message sent at {datetime.now()}")
             return True
-        except TelegramError as e:
+        except Exception as e:
             print(f"❌ Error: {e}")
             return False
     
     async def run(self):
         """Main bot loop"""
-        print("🚀 Bot is running on cloud...")
+        print("🚀 Bot running on Render - 24/7!")
+        
+        # Send immediate test
+        print("📤 Sending test message...")
+        await self.send_message()
         
         while True:
-            current_time = datetime.now().strftime("%H:%M")
-            
-            # Send at 08:00 every day
-            if current_time == "08:00":
+            now = datetime.now()
+            # Send daily at 8:00 AM
+            if now.hour == 8 and now.minute == 0:
                 await self.send_message()
-            
-            # Also send every 6 hours for testing
-            elif current_time in ["08:00", "14:00", "20:00", "02:00"]:
-                await self.send_message()
-            
-            # Wait 60 seconds before checking again
+            # Wait 60 seconds
             await asyncio.sleep(60)
 
-async def main():
-    bot = DeployedIslamicBot()
-    await bot.run()
-
 if __name__ == "__main__":
-    asyncio.run(main())
+    bot = IslamicBot()
+    asyncio.run(bot.run())
