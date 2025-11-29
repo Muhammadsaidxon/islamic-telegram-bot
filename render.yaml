@@ -1,7 +1,7 @@
-sservices:
+services:
   - type: worker
     name: islamic-bot
     env: python
     plan: free
-    buildCommand: pip3 install -r requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: python main.py
